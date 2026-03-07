@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Recipients</title>
+</head>
+<body>
+    <h1>Manage Recipients</h1>
+
+    <!-- Form to create a new recipient -->
+    <form method="POST" action="/recipients">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="relationship">Relationship:</label>
+        <input type="text" id="relationship" name="relationship"><br>
+
+        <label for="preferences">Preferences:</label>
+        <input type="text" id="preferences" name="preferences"><br>
+
+        <label for="restrictions">Restrictions:</label>
+        <input type="text" id="restrictions" name="restrictions"><br>
+
+        <button type="submit">Add Recipient</button>
+    </form>
+
+    <h2>All Recipients</h2>
+    <ul>
+        {% for recipient in recipients %}
+        <li>{{ recipient.name }} ({{ recipient.relationship }}) - Preferences: {{ recipient.preferences }}, Restrictions: {{ recipient.restrictions }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

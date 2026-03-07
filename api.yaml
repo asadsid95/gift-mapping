@@ -1,0 +1,231 @@
+openapi: 3.0.3
+info:
+  title: Group Gifting API
+  version: 1.0.0
+  description: API for managing recipients, events, and gift ideas for group gifting.
+servers:
+  - url: http://127.0.0.1:5000
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /api/recipients:
+    get:
+      summary: List recipients
+      responses:
+        '200':
+          description: Recipient list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipient'
+    post:
+      summary: Create recipient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipientCreate'
+      responses:
+        '201':
+          description: Recipient created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipient'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/events:
+    get:
+      summary: List events
+      responses:
+        '200':
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+    post:
+      summary: Create event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreate'
+      responses:
+        '201':
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/gifts:
+    get:
+      summary: List gift ideas
+      responses:
+        '200':
+          description: Gift idea list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GiftIdea'
+    post:
+      summary: Create gift idea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GiftIdeaCreate'
+      responses:
+        '201':
+          description: Gift idea created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftIdea'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+components:
+  responses:
+    BadRequest:
+      description: Invalid request payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+    Recipient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        relationship:
+          type: string
+          nullable: true
+        preferences:
+          type: string
+          nullable: true
+        restrictions:
+          type: string
+          nullable: true
+      required: [id, name]
+    RecipientCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        preferences:
+          type: string
+        restrictions:
+          type: string
+      required: [name]
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        recipient_id:
+          type: integer
+        type:
+          type: string
+        date:
+          type: string
+          format: date
+        group_id:
+          type: integer
+        min_budget:
+          type: number
+          format: float
+          nullable: true
+        max_budget:
+          type: number
+          format: float
+          nullable: true
+        reminder_date:
+          type: string
+          format: date
+          nullable: true
+      required: [id, recipient_id, type, date, group_id]
+    EventCreate:
+      type: object
+      properties:
+        recipient_id:
+          type: integer
+        type:
+          type: string
+        date:
+          type: string
+          format: date
+        group_id:
+          type: integer
+        min_budget:
+          type: number
+          format: float
+        max_budget:
+          type: number
+          format: float
+        reminder_date:
+          type: string
+          format: date
+      required: [recipient_id, type, date, group_id]
+    GiftIdea:
+      type: object
+      properties:
+        id:
+          type: integer
+        event_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        estimated_cost:
+          type: number
+          format: float
+          nullable: true
+      required: [id, event_id, title]
+    GiftIdeaCreate:
+      type: object
+      properties:
+        event_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        estimated_cost:
+          type: number
+          format: float
+      required: [event_id, title]

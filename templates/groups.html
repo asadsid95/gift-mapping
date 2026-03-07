@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Groups</title>
+</head>
+<body>
+    <h1>Manage Groups</h1>
+
+    <!-- Form to create a new group -->
+    <form method="POST" action="/groups">
+        <label for="name">Group Name:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <button type="submit">Add Group</button>
+    </form>
+
+    <h2>All Groups</h2>
+    <ul>
+        {% for group in groups %}
+        <li>
+            <strong>{{ group.name }}</strong><br>
+            Members:
+            <ul>
+                {% for member in group.members %}
+                <li>{{ member.name }} ({{ member.email }})
+                    <form method="POST" action="/groups/{{ group.id }}/remove_member">
+                        <input type="hidden" name="user_id" value="{{ member.id }}">
+                        <button type="submit">Remove</button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            <form method="POST" action="/groups/{{ group.id }}/add_member">
+                <label for="user_id">Add Member (User ID):</label>
+                <input type="number" id="user_id" name="user_id" required><br>
+                <button type="submit">Add Member</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

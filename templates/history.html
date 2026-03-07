@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift History</title>
+</head>
+<body>
+    <h1>Gift History</h1>
+
+    <h2>Completed Gifts</h2>
+    <ul>
+        {% for record in gift_records %}
+        <li>
+            <strong>Event ID:</strong> {{ record.event_id }}<br>
+            <strong>Final Gift:</strong> {{ record.final_gift }}<br>
+            <strong>Contributors:</strong> {{ record.contributors }}<br>
+            <strong>Total Cost:</strong> ${{ record.total_cost }}<br>
+            <strong>Date Completed:</strong> {{ record.date_completed }}
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

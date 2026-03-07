@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Recipient</title>
+</head>
+<body>
+    <h1>Manage Recipient</h1>
+
+    <form method="POST" action="/recipients/{{ recipient.id }}">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ recipient.name }}" disabled><br>
+
+        <label for="relationship">Relationship:</label>
+        <input type="text" id="relationship" name="relationship" value="{{ recipient.relationship }}" disabled><br>
+
+        <label for="preferences">Preferences:</label>
+        <input type="text" id="preferences" name="preferences" value="{{ recipient.preferences }}"><br>
+
+        <label for="restrictions">Restrictions:</label>
+        <input type="text" id="restrictions" name="restrictions" value="{{ recipient.restrictions }}"><br>
+
+        <button type="submit">Update</button>
+    </form>
+</body>
+</html>

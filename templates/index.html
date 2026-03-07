@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Flask App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <h1>Hello Flask</h1>
+    <p>Server's current date and time: {{current_date.strftime('%Y-%m-%d %H:%M:%S')}}</p>
+    <br>
+    <p>Client's current date and time: <span id="clock"></span></p>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("clock").innerText =
+                now.toLocaleString();
+        }
+
+        updateClock(); // initial render
+        setInterval(updateClock, 1000);
+    </script>
+
+</body>
+
+</html>
