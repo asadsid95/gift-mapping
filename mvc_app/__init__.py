@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, send_from_directory, request, session, url_for
 from flask_migrate import Migrate
 
 from mvc_app.controllers import api_bp, web_bp
@@ -11,7 +11,7 @@ migrate = Migrate()
 
 
 def create_app():
-    app = Flask(__name__, template_folder='../templates', static_folder='../static')
+    app = Flask(__name__, template_folder='../templates', static_folder='../static/css')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key')
@@ -22,12 +22,26 @@ def create_app():
     app.register_blueprint(web_bp)
     app.register_blueprint(api_bp)
 
+    # inside create_app(), after registering blueprints:
+    @app.get("/openapi.yaml")
+    def openapi_yaml():
+        # api.yaml is at repo root (parent of mvc_app/)
+        return send_from_directory(os.path.dirname(app.root_path), "api.yaml", mimetype="application/yaml")
+
+    @app.get("/docs")
+    def docs():
+        return render_template("docs.html")
+
+
+
     @app.before_request
     def require_login():
         allowed_endpoints = {
             'web.login',
             'web.register',
             'static',
+            "openapi_yaml",
+            "docs",
             'api.health',
             'api.list_recipients',
             'api.create_recipient',

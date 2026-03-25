@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for, get_flashed_messages
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from mvc_app.models import Event, GiftIdea, GiftRecord, Group, Recipient, User, Vote, db

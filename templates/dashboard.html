@@ -1,17 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
 </head>
+
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Dashboard</h1>
+
 <body>
-    <h1>Dashboard</h1>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class=flashes>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
 
     <h2>Upcoming Events</h2>
     <ul>
         {% for event in upcoming_events %}
-        <li>{{ event.type }} on {{ event.date }} (Recipient ID: {{ event.recipient_id }}, Group ID: {{ event.group_id }})</li>
+        <li>{{ event.type }} on {{ event.date }} (Recipient ID: {{ event.recipient_id }}, Group ID: {{ event.group_id
+            }})</li>
         {% endfor %}
     </ul>
 
@@ -43,4 +61,6 @@
         {% endfor %}
     </ul>
 </body>
+{% endblock %}
+
 </html>
