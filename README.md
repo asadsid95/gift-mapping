@@ -59,23 +59,28 @@ This Flask application helps friends and families plan thoughtful, non-repetitiv
    ```bash
    flask run
    ```
-2. Open your browser and navigate to `http://127.0.0.1:5000`.
 
-### Deployment
-1. Configure AWS credentials:
-   ```bash
-   aws configure
-   ```
-2. Deploy the application using Zappa:
-   ```bash
-   zappa deploy dev
-   ```
+2. To run the app on gunicorn server:
 
-## Testing
-Run the unit tests:
-```bash
-python3 -m unittest test_app.py
-```
+   gunicorn -w 4 'mvc_app:create_app()' --access-logfile=- --bind 0.0.0.0:8000
 
-## License
-This project is licensed under the MIT License.
+   - i created gunicorn.conf.py with the settings above so only the following command can be used: gunicorn -w 4 'mvc_app:create_app()'
+
+- I tried making it publically accessible by just ngrok
+- I also learned to run it via gunicorn but I also need to put nginx HTTP server as reverse proxy so client can call it which will call gunicorn WSGI server in background
+-- nginx is found in /opt/homebrew/etc/nginx
+   -- to find what is running on a specific port: sudo lsof -i TCP:8080 
+      -- ps -ax | grep nginx
+      -- kill -s QUIT <pid>
+
+- to find logs of Nginx server, navigate to /opt/homebrew/var/log/nginx to find access.log & error.log
+   -- use tail -f access.log to see real-time updates to logs
+
+
+
+To-do:
+- Set up frontend 
+- Sort out the users 
+- secure APIs
+- track user token; figure it out
+- Investigate why route '/' is only accessible after user has logged in

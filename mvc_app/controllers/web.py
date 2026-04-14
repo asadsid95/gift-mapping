@@ -16,8 +16,66 @@ def _parse_date(raw_value):
 @web_bp.route('/')
 def home():
     current_date = datetime.now()
+    # print(request.headers)
+    print("X-Request-ID:::: ", request.headers.get("X-Request-ID"))
     return render_template('index.html', current_date=current_date)
 
+
+@web_bp.route('/dashboard')
+def dashboard():
+    upcoming_events = Event.query.filter(Event.date >= datetime.now().date()).all()
+    recent_gift_history = GiftRecord.query.order_by(GiftRecord.date_completed.desc()).limit(5).all()
+    all_groups = Group.query.all()
+
+    return render_template(
+        'dashboard.html',
+        upcoming_events=upcoming_events,
+        recent_gift_history=recent_gift_history,
+        all_groups=all_groups,
+    )
+
+
+@web_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        password = generate_password_hash(request.form['password'])
+
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.')
+            return redirect(url_for('web.register'))
+
+        db.session.add(User(name=name, email=email, password=password))
+        db.session.commit()
+        flash('Registration successful. Please log in.')
+        return redirect(url_for('web.login'))
+
+    return render_template('register.html')
+
+
+@web_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            flash('Login successful.')
+            return redirect(url_for('web.dashboard'))
+
+        flash('Invalid email or password.')
+
+    return render_template('login.html')
+
+
+@web_bp.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('Logged out successfully.')
+    return redirect(url_for('web.login'))
 
 @web_bp.route('/events', methods=['GET', 'POST'])
 def events():
@@ -200,59 +258,3 @@ def reminders():
     all_events = Event.query.all()
     return render_template('reminders.html', events=all_events)
 
-
-@web_bp.route('/dashboard')
-def dashboard():
-    upcoming_events = Event.query.filter(Event.date >= datetime.now().date()).all()
-    recent_gift_history = GiftRecord.query.order_by(GiftRecord.date_completed.desc()).limit(5).all()
-    all_groups = Group.query.all()
-
-    return render_template(
-        'dashboard.html',
-        upcoming_events=upcoming_events,
-        recent_gift_history=recent_gift_history,
-        all_groups=all_groups,
-    )
-
-
-@web_bp.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
-
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered.')
-            return redirect(url_for('web.register'))
-
-        db.session.add(User(name=name, email=email, password=password))
-        db.session.commit()
-        flash('Registration successful. Please log in.')
-        return redirect(url_for('web.login'))
-
-    return render_template('register.html')
-
-
-@web_bp.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-
-        user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            flash('Login successful.')
-            return redirect(url_for('web.dashboard'))
-
-        flash('Invalid email or password.')
-
-    return render_template('login.html')
-
-
-@web_bp.route('/logout')
-def logout():
-    session.pop('user_id', None)
-    flash('Logged out successfully.')
-    return redirect(url_for('web.login'))
