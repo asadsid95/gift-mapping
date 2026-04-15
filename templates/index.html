@@ -2,28 +2,26 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Flask App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='/style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User dashboard</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    #root {
+      height: 100%;
+    }
+  </style>
+  <script type="module" crossorigin src="/static/assets/index-N-Sx-qrU.js"></script>
+  <link rel="stylesheet" crossorigin href="/static/assets/index-7aXkTaZU.css">
 </head>
 
 <body>
-    <h1>Hello Flask</h1>
-    <p>Server's current date and time: {{current_date.strftime('%Y-%m-%d %H:%M:%S')}}</p>
-    <br>
-    <p>Client's current date and time: <span id="clock"></span></p>
-
-    <script>
-        function updateClock() {
-            const now = new Date();
-            document.getElementById("clock").innerText =
-                now.toLocaleString();
-        }
-
-        updateClock(); // initial render
-        setInterval(updateClock, 1000);
-    </script>
-
+  <div id="root"></div>
 </body>
 
 </html>

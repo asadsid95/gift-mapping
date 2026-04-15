@@ -80,6 +80,10 @@ This Flask application helps friends and families plan thoughtful, non-repetitiv
 
 To-do:
 - Set up frontend 
+
+   - I imported the build js and css files into /static after exporting the frontend app from Figma. I had to tweak the static files' path. 
+   - Now I need to gut the frontend app to remove the dummy data and connect it to backend to pull data from DB. I got the first frontend page /users to call backend route /login after resolving CORS issue.
+
 - Sort out the users 
 - secure APIs
 - track user token; figure it out

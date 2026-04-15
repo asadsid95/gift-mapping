@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
-from mvc_app.models import Event, GiftIdea, Recipient, db
+from mvc_app.models import Event, GiftIdea, Recipient, db, User
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -167,3 +167,19 @@ def create_gift():
         ),
         201,
     )
+
+
+@api_bp.get('/users')
+def list_users():
+    users = User.query.all()
+    payload = [
+        {
+            'id': u.id,
+            'email': u.email,
+            'name': u.name
+            # 'username': u.username,
+            # 'created_at': u.created_at.isoformat() if u.created_at else None
+        }
+        for u in users
+    ]
+    return jsonify(payload)

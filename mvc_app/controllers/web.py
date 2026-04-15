@@ -1,6 +1,9 @@
 from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, get_flashed_messages
+
+from flask_cors import cross_origin
+
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from mvc_app.models import Event, GiftIdea, GiftRecord, Group, Recipient, User, Vote, db
@@ -55,6 +58,7 @@ def register():
 
 
 @web_bp.route('/login', methods=['GET', 'POST'])
+@cross_origin()
 def login():
     if request.method == 'POST':
         email = request.form['email']
