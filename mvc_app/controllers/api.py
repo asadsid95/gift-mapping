@@ -1,8 +1,12 @@
 from datetime import datetime
+from typing import Literal
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request,session
+from flask.wrappers import Response
 
-from mvc_app.models import Event, GiftIdea, Recipient, db, User
+from mvc_app.models import (Event, GiftIdea, Group, Recipient, db, User, GiftPreference)
+from werkzeug.security import check_password_hash, generate_password_hash
+
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -20,50 +24,154 @@ def _parse_date(raw_value):
 def health():
     return jsonify({'status': 'ok'})
 
+@api_bp.post('/register')
+def register() -> tuple[Response, Literal[400]] | tuple[Response, Literal[500]] | tuple[Response, Literal[201]]:
 
-@api_bp.get('/recipients')
-def list_recipients():
-    recipients = Recipient.query.all()
+  
+    body = request.get_json(silent=True) or {}
+
+    name = body.get('name')
+    email = body.get('email')
+    password = body.get('password')
+    birthday = body.get('birthday')  # Added birthday field
+    gift_preferences = body.get('gift_preferences', [])  # List of gift preferences
+
+    if not name or not email or not password or not birthday:
+        return jsonify({"status": "failed", "message": "Name, email, password, and birthday are required."}), 400
+
+    # Check if the email already exists
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({"status": "failed", "message": "Email already registered!!"}), 500
+
+    # Add the new user to the database
+    hashed_password = generate_password_hash(password)
+    new_user = User(name=name, email=email, password=hashed_password, birthday=_parse_date(birthday))
+    db.session.add(new_user)
+    db.session.commit()
+
+    # Add gift preferences if provided
+    for preference in gift_preferences:
+        title = preference.get('title')
+        price = preference.get('price')
+        metadata = preference.get('metadata', {})
+
+        if not title:
+            return jsonify({"status": "failed", "message": "Each gift preference must have a title."}), 400
+
+        gift_preference = GiftPreference(
+            user_id=new_user.id,
+            title=title,
+            price=price,
+            metadata=metadata
+        )
+        db.session.add(gift_preference)
+
+    db.session.commit()
+
+    return jsonify({"status": "success", "message": "User registered successfully."}), 201
+    
+@api_bp.post("/login")
+def login():
+    body = request.get_json(silent=True) or {}
+
+    email = body.get('email')
+    password = body.get('password')
+
+    if not email or not password:
+        return jsonify({"status": "failed", "message": "Email, and password are required."}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if user and check_password_hash(user.password, password):
+        # print("login passed")
+        session['user_id'] = user.id
+        return jsonify({"message": 'Successful login'}), 200
+    else:
+        return jsonify({"message": 'Invalid credentials.'}), 500
+
+@api_bp.get('/users')
+def list_users():
+    users = User.query.all()
     payload = [
         {
-            'id': r.id,
-            'name': r.name,
-            'relationship': r.relationship,
-            'preferences': r.preferences,
-            'restrictions': r.restrictions,
+            'id': u.id,
+            'email': u.email,
+            'name': u.name
+            # 'username': u.username,
+            # 'created_at': u.created_at.isoformat() if u.created_at else None
         }
-        for r in recipients
+        for u in users
     ]
     return jsonify(payload)
 
 
-@api_bp.post('/recipients')
-def create_recipient():
-    body = request.get_json(silent=True) or {}
-    if not body.get('name'):
-        return jsonify({'error': 'name is required'}), 400
+@api_bp.get('/groups')
+def list_groups():
+    groups = Group.query.all()
+    payload = [
+        {
+            'id': g.id,
+            'name': g.name,
+            'created_by': g.created_by,
+            'created_at': _date_to_str(g.created_at),
+            # How to get group memebers?
+        }
+        for g in groups
+    ]
+    return jsonify(payload)
 
-    recipient = Recipient(
-        name=body['name'],
-        relationship=body.get('relationship'),
-        preferences=body.get('preferences'),
-        restrictions=body.get('restrictions'),
-    )
-    db.session.add(recipient)
+
+@api_bp.post('/group')
+def create_group():
+    body = request.get_json(silent=True) or {}
+    name = body.get('name')
+    member_ids = body.get('members', [])  # List of user IDs to add as members
+
+    print(body)
+
+    if not name:
+        return jsonify({'error': 'Group name is required'}), 400
+
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'User must be logged in to create a group'}), 401
+
+
+    # Validate member IDs
+    valid_members = User.query.filter(User.id.in_(member_ids)).all()
+    if len(valid_members) != len(member_ids):
+        return jsonify({'error': 'Some user IDs are invalid'}), 400
+
+    group = Group(name=name, created_by=user_id)
+    db.session.add(group)
+    db.session.commit()
+
+
+    # Add members to the group
+    for member in valid_members:
+        group.members.append(member)
+
+    # Add the creator as a member (optional, if not already included)
+    creator = User.query.get(user_id)
+    if creator not in group.members:
+        group.members.append(creator)
+
     db.session.commit()
 
     return (
         jsonify(
             {
-                'id': recipient.id,
-                'name': recipient.name,
-                'relationship': recipient.relationship,
-                'preferences': recipient.preferences,
-                'restrictions': recipient.restrictions,
+                'id': group.id,
+                'name': group.name,
+                'created_by': group.created_by,
+                'created_at': _date_to_str(group.created_at),
+                'members': [{'id': m.id, 'name': m.name, 'email': m.email} for m in group.members],
+
             }
         ),
         201,
     )
+
 
 
 @api_bp.get('/events')
@@ -169,17 +277,3 @@ def create_gift():
     )
 
 
-@api_bp.get('/users')
-def list_users():
-    users = User.query.all()
-    payload = [
-        {
-            'id': u.id,
-            'email': u.email,
-            'name': u.name
-            # 'username': u.username,
-            # 'created_at': u.created_at.isoformat() if u.created_at else None
-        }
-        for u in users
-    ]
-    return jsonify(payload)

@@ -82,7 +82,11 @@ To-do:
 - Set up frontend 
 
    - I imported the build js and css files into /static after exporting the frontend app from Figma. I had to tweak the static files' path. 
-   - Now I need to gut the frontend app to remove the dummy data and connect it to backend to pull data from DB. I got the first frontend page /users to call backend route /login after resolving CORS issue.
+   - Now I need to gut the frontend app to remove the dummy data and connect it to backend to pull data from DB. 
+      1. I got the first frontend page /users to call backend route /login after resolving CORS issue.
+      2. /register done
+      3. /login done ; session mgmt using flask (/login's response header has set-cookie field)
+
 
 - Sort out the users 
 - secure APIs

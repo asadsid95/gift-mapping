@@ -16,21 +16,25 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    birthday = db.Column(db.Date, nullable=False)  # Added birthday field
     groups = db.relationship('Group', secondary=user_group, back_populates='members')
+    gift_preferences = db.relationship('GiftPreference', back_populates='user', cascade='all, delete-orphan')
 
+class GiftPreference(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=True)
+
+    # Relationship to User
+    user = db.relationship('User', back_populates='gift_preferences')
 
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     members = db.relationship('User', secondary=user_group, back_populates='groups')
-
-
-class Recipient(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    relationship = db.Column(db.String(50))
-    preferences = db.Column(db.String(200))
-    restrictions = db.Column(db.String(200))
 
 
 class Event(db.Model):

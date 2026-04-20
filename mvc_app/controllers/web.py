@@ -38,23 +38,23 @@ def dashboard():
     )
 
 
-@web_bp.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
+# @web_bp.route('/register', methods=['GET', 'POST'])
+# def register():
+#     if request.method == 'POST':
+#         name = request.form['name']
+#         email = request.form['email']
+#         password = generate_password_hash(request.form['password'])
 
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered.')
-            return redirect(url_for('web.register'))
+#         if User.query.filter_by(email=email).first():
+#             flash('Email already registered.')
+#             return redirect(url_for('web.register'))
 
-        db.session.add(User(name=name, email=email, password=password))
-        db.session.commit()
-        flash('Registration successful. Please log in.')
-        return redirect(url_for('web.login'))
+#         db.session.add(User(name=name, email=email, password=password))
+#         db.session.commit()
+#         flash('Registration successful. Please log in.')
+#         return redirect(url_for('web.login'))
 
-    return render_template('register.html')
+#     return render_template('register.html')
 
 
 @web_bp.route('/login', methods=['GET', 'POST'])
