@@ -3,7 +3,7 @@ import os
 from flask import Flask, redirect, render_template, send_from_directory, request, session, url_for
 from flask_migrate import Migrate
 
-from mvc_app.controllers import api_bp, web_bp
+from mvc_app.controllers import api_bp
 from mvc_app.models import db
 from flask_cors import CORS
 
@@ -22,7 +22,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    app.register_blueprint(web_bp)
+    # app.register_blueprint(web_bp)
     app.register_blueprint(api_bp)
 
     # inside create_app(), after registering blueprints:
@@ -40,8 +40,8 @@ def create_app():
     @app.before_request
     def require_login():
         allowed_endpoints = {
-            'web.login',
-            'web.register',
+            # 'web.login',
+            # 'web.register',
             'static',
             "openapi_yaml",
             "docs",

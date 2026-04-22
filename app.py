@@ -1,5 +1,5 @@
 from mvc_app import create_app
-from mvc_app.models import Contribution, Event, GiftIdea, GiftRecord, Group, Recipient, User, Vote, db
+from mvc_app.models import  Group, User, db
 
 
 app = create_app()
@@ -10,10 +10,9 @@ __all__ = [
     'db',
     'User',
     'Group',
-    'Recipient',
-    'Event',
-    'GiftIdea',
-    'Vote',
-    'Contribution',
-    'GiftRecord',
+    # 'Event',
+    # 'GiftIdea',
+    # 'Vote',
+    # 'Contribution',
+    # 'GiftRecord',
 ]

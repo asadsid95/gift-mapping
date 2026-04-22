@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Reminders</title>
 </head>
+
 <body>
     <h1>Manage Event Reminders</h1>
 
@@ -23,10 +25,11 @@
     <ul>
         {% for event in events %}
         <li>
-            {{ event.type }} on {{ event.date }} (Recipient ID: {{ event.recipient_id }}, Group ID: {{ event.group_id }})<br>
+            {{ event.type }} on {{ event.date }} (Group ID: {{ event.group_id }})<br>
             <strong>Reminder Date:</strong> {{ event.reminder_date if event.reminder_date else 'No reminder set' }}
         </li>
         {% endfor %}
     </ul>
 </body>
+
 </html>

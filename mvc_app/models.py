@@ -36,42 +36,52 @@ class Group(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     members = db.relationship('User', secondary=user_group, back_populates='groups')
 
-
-class Event(db.Model):
+class Invitation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    recipient_id = db.Column(db.Integer, db.ForeignKey('recipient.id'), nullable=False)
-    type = db.Column(db.String(50), nullable=False)
-    date = db.Column(db.Date, nullable=False)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
-    min_budget = db.Column(db.Float)
-    max_budget = db.Column(db.Float)
-    reminder_date = db.Column(db.Date)
+    email = db.Column(db.String(100), nullable=False)
+    status = db.Column(db.String(50), nullable=False, default='pending')  # pending, accepted, declined
+    sent_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    responded_at = db.Column(db.DateTime)
 
 
-class GiftIdea(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
-    title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(200))
-    estimated_cost = db.Column(db.Float)
+# class Event(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     type = db.Column(db.String(50), nullable=False)
+#     date = db.Column(db.Date, nullable=False)
+#     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
+#     min_budget = db.Column(db.Float)
+#     max_budget = db.Column(db.Float)
+#     reminder_date = db.Column(db.Date)
 
 
-class Vote(db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    gift_idea_id = db.Column(db.Integer, db.ForeignKey('gift_idea.id'), primary_key=True)
-    score = db.Column(db.Integer, nullable=False)
+# class GiftIdea(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
+#     title = db.Column(db.String(100), nullable=False)
+#     description = db.Column(db.String(200))
+#     estimated_cost = db.Column(db.Float)
 
 
-class Contribution(db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), primary_key=True)
-    amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(50), nullable=False)
+# class Vote(db.Model):
+#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+#     gift_idea_id = db.Column(db.Integer, db.ForeignKey('gift_idea.id'), primary_key=True)
+#     score = db.Column(db.Integer, nullable=False)
 
 
-class GiftRecord(db.Model):
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), primary_key=True)
-    final_gift = db.Column(db.String(100), nullable=False)
-    contributors = db.Column(db.String(200))
-    total_cost = db.Column(db.Float)
-    date_completed = db.Column(db.Date)
+# class Contribution(db.Model):
+#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+#     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), primary_key=True)
+#     amount = db.Column(db.Float, nullable=False)
+#     status = db.Column(db.String(50), nullable=False)
+
+
+# class GiftRecord(db.Model):
+#     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), primary_key=True)
+#     final_gift = db.Column(db.String(100), nullable=False)
+#     contributors = db.Column(db.String(200))
+#     total_cost = db.Column(db.Float)
+#     date_completed = db.Column(db.Date)
+
+
+

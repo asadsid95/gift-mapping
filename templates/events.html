@@ -62,8 +62,8 @@
     <ul>
         {% for event in events %}
         <li>
-            {{ event.type }} on {{ event.date }} (Recipient ID: {{ event.recipient_id }}, Group ID: {{ event.group_id
-                }})<br>
+            {{ event.type }} on {{ event.date }} ( Group ID: {{ event.group_id
+            }})<br>
             <strong>Budget:</strong> ${{ event.min_budget }} - ${{ event.max_budget }}
         </li>
         {% endfor %}
