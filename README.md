@@ -87,8 +87,27 @@ To-do:
       2. /register done
       3. /login done ; session mgmt using flask (/login's response header has set-cookie field)
 
-
 - Sort out the users 
 - secure APIs
 - track user token; figure it out
 - Investigate why route '/' is only accessible after user has logged in
+   - 
+
+- Group creation is done
+
+- Usage of a group
+   - Prompt: Given users are already added (yes, lets assume invitation part is bypassed therefore, every user is already registered), I can add my friends to it. For each user's brithday, an event should be created for the next year. frontend will have a section for upcoming events that can call this API so it can display the remaining days. Any user in the group can go into an event, add a min and max budget 
+   - 
+
+- Usage of an event
+   - Assume an event has been created for a group member, we want to be able to add min and max budget and gift ideas.
+   - Gift ideas can be added under an event. Each gift idea can be voted on.
+   - Flag to determine the completion of an event should be present to indicate a gift was given. At the time of marking this flag, user will be asked which gift idea was chosen.
+
+   i just added #sym:FakeVote  table and while running flask db mirgate returns 'No changes in schema detected.'. Without running 'flask db upgrade', i found the table to be automatically created in DB. How can this be?
+      - 
+
+- Connecting frontend app
+   - Login and register done
+   - For dashboard:
+      - Show groups

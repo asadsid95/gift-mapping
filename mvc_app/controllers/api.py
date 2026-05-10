@@ -1,13 +1,13 @@
 from datetime import datetime
+from sqlite3 import IntegrityError
 from typing import Literal
 
 from flask import Blueprint, jsonify, request,session
 from flask.wrappers import Response
 
-from mvc_app.models import (Group, db, User, GiftPreference, Invitation)
-from ..utils import send_email
+from mvc_app.models import (Group, db, User, GiftPreference, Invitation, Event, GiftIdea)
+from ..utils import send_email, is_group_member
 from werkzeug.security import check_password_hash, generate_password_hash
-
 
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -106,7 +106,7 @@ def list_users():
     return jsonify(payload)
 
 
-@api_bp.get('/groups')
+@api_bp.get('/group')
 def list_groups():
     groups = Group.query.all()
     payload = [
@@ -116,6 +116,14 @@ def list_groups():
             'created_by': g.created_by,
             'created_at': _date_to_str(g.created_at),
             # How to get group memebers?
+            'members': [
+                {
+                    'id': member.id,
+                    'name': member.name,
+                    'email': member.email
+                }
+                for member in g.members
+            ]
         }
         for g in groups
     ]
@@ -153,6 +161,21 @@ def create_group():
             )
             invitation = Invitation(group_id=group.id, email=email, status='pending')
             db.session.add(invitation)
+
+            '''Review this: Should user be added to group while inivitation is pending?'''
+              # Add user to the group
+            group.members.append(user)
+
+            # Create a birthday event for the next year
+            next_birthday = user.birthday.replace(year=datetime.now().year + 1)
+            event = Event(
+                type="Birthday",
+                date=next_birthday,
+                group_id=group.id,
+                user_id=user.id,
+                status = "upcoming"
+            )
+            db.session.add(event)
         else:
             # User does not exist, send invitation to register
             send_email(
@@ -168,7 +191,7 @@ def create_group():
     return jsonify({'id': group.id, 'name': group.name, 'created_by': group.created_by}), 201
 
 
-
+# TO REVIEW
 @api_bp.get('/accept_invite')
 def accept_invite():
     group_id = request.args.get('group_id')
@@ -193,7 +216,7 @@ def accept_invite():
 
     return jsonify({'message': 'Invitation accepted successfully'}), 200
 
-
+# TO REVIEW
 @api_bp.get('/decline_invite')
 def decline_invite():
     group_id = request.args.get('group_id')
@@ -214,62 +237,116 @@ def decline_invite():
 
     return jsonify({'message': 'Invitation declined successfully'}), 200
 
+############## EVENTS ################
 
+@api_bp.get('/groups/<int:group_id>/events')
+def get_upcoming_events(group_id):
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
 
-# @api_bp.get('/events')
-# def list_events():
-#     events = Event.query.all()
-#     payload = [
-#         {
-#             'id': e.id,
-#             # 'recipient_id': e.recipient_id,
-#             'type': e.type,
-#             'date': _date_to_str(e.date),
-#             'group_id': e.group_id,
-#             'min_budget': e.min_budget,
-#             'max_budget': e.max_budget,
-#             'reminder_date': _date_to_str(e.reminder_date),
-#         }
-#         for e in events
-#     ]
-#     return jsonify(payload)
+    today = datetime.now().date()
+    events = Event.query.filter(Event.group_id == group_id, Event.date >= today).all()
 
+    payload = [
+        {
+            'id': event.id,
+            'type': event.type,
+            'date': event.date.isoformat(),
+            'group_id': event.group_id,
+            'user_id': event.user_id,
+            'remaining_days': (event.date - today).days,
+            'min_budget': event.min_budget,
+            'max_budget': event.max_budget,
+            'reminder_date': event.reminder_date,
+            'status': event.status
+        }
+        for event in events
+    ]
+    return jsonify(payload)
 
-# @api_bp.post('/events')
-# def create_event():
-#     body = request.get_json(silent=True) or {}
-#     required = ['recipient_id', 'type', 'date', 'group_id']
-#     missing = [field for field in required if not body.get(field)]
-#     if missing:
-#         return jsonify({'error': f"missing fields: {', '.join(missing)}"}), 400
+@api_bp.patch('/events/<int:event_id>')
+def update_event(event_id):
+    body = request.get_json(silent=True) or {}
+    min_budget = body.get('min_budget')
+    max_budget = body.get('max_budget')
+    status = body.get('status')
 
-#     event = Event(
-#         # recipient_id=body['recipient_id'],
-#         type=body['type'],
-#         date=_parse_date(body['date']),
-#         group_id=body['group_id'],
-#         min_budget=body.get('min_budget'),
-#         max_budget=body.get('max_budget'),
-#         reminder_date=_parse_date(body['reminder_date']) if body.get('reminder_date') else None,
-#     )
-#     db.session.add(event)
-#     db.session.commit()
+    event = Event.query.get(event_id)
+    if not event:
+        return jsonify({'error': 'Event not found'}), 404
 
-#     return (
-#         jsonify(
-#             {
-#                 'id': event.id,
-#                 'type': event.type,
-#                 'date': _date_to_str(event.date),
-#                 'group_id': event.group_id,
-#                 'min_budget': event.min_budget,
-#                 'max_budget': event.max_budget,
-#                 'reminder_date': _date_to_str(event.reminder_date),
-#             }
-#         ),
-#         201,
-#     )
+    if min_budget is not None:
+        event.min_budget = min_budget
+    if max_budget is not None:
+        event.max_budget = max_budget
 
+    # Update status if provided
+    if status is not None:
+        if status not in ['upcoming', 'completed', 'cancelled']:
+            return jsonify({'error': 'Invalid status value'}), 400
+        event.status = status
+
+    db.session.commit()
+    return jsonify({'message': 'Event updated successfully'})
+
+######################### GIFT IDEAS ################################
+
+@api_bp.post('/events/<int:event_id>/gift-ideas')
+def create_gift_idea(event_id):
+    data = request.get_json(silent=True) or {}
+    print(data)
+    user_id = data.get('user_id')
+    title = data.get('title')
+    description = data.get('description')
+    estimated_cost = data.get('estimated_cost')
+
+    # Validate event existence
+    event = Event.query.get(event_id)
+    if not event:
+        return jsonify({'error': 'Event not found'}), 404
+
+    # Validate user is a group member
+    if not is_group_member(user_id, event.group_id):
+        
+        return jsonify({'error': 'User is not a member of the group'}), 403
+
+    # Validate estimated_cost
+    if estimated_cost is not None and estimated_cost < 0:
+        return jsonify({'error': 'Estimated cost must be non-negative'}), 400
+
+    # Create gift idea
+    gift_idea = GiftIdea(
+        event_id=event_id,
+        user_id=user_id,
+        title=title,
+        description=description,
+        estimated_cost=estimated_cost
+    )
+    db.session.add(gift_idea)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to create gift idea'}), 500
+
+    return jsonify({'message': 'Gift idea created successfully', 'gift_idea': gift_idea.id}), 201
+
+# GET /api/events/<event_id>/gift-ideas
+@api_bp.route('/events/<int:event_id>/gift-ideas', methods=['GET'])
+def get_gift_ideas(event_id):
+    event = Event.query.get(event_id)
+    if not event:
+        return jsonify({'error': 'Event not found'}), 404
+
+    gift_ideas = GiftIdea.query.filter_by(event_id=event_id).all()
+    return jsonify([{
+        'id': idea.id,
+        'title': idea.title,
+        'description': idea.description,
+        'estimated_cost': idea.estimated_cost,
+        'user_id': idea.user_id
+    } for idea in gift_ideas]), 200
 
 # @api_bp.get('/gifts')
 # def list_gifts():
